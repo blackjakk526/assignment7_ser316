@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Vector;
 
 import main.java.memoranda.date.CalendarDate;
+import main.java.memoranda.interfaces.IEvent;
 import main.java.memoranda.util.CurrentStorage;
 import main.java.memoranda.util.Util;
 
@@ -112,7 +113,7 @@ public class EventsManager {
 		return v;
 	}
 
-	public static Event createEvent(
+	public static IEvent createEvent(
 		CalendarDate date,
 		int hh,
 		int mm,
@@ -128,14 +129,16 @@ public class EventsManager {
 		d.getElement().appendChild(el);
 		return new EventImpl(el);
 	}
-
-	public static Event createRepeatableEvent(
+	//TASK 2-2 SMELL BETWEEN CLASSES
+	//I FEEL THIS IS A PRIMITIVE OBSESSION AND A LONG PARAMETER LIST CODE SMELL
+	//IT CAN BE FIXED BY HAVING A CLASS THAT HANDLES VARIABLES TO CONDENSE THE LIST
+	//I THINK THIS IS A CODE SMELL BECAUSE IT LOOKS LIKE A LIST OF VARIABLE FOR THE METHOD NOT A PARAMETER LIST
+	//WHICH MAYBE CONFUSING TO A PROGRAMMER OR TESTER
+	public static IEvent createRepeatableEvent(
 		int type,
 		CalendarDate startDate,
 		CalendarDate endDate,
-		int period,
-		int hh,
-		int mm,
+		Time t,
 		String text,
 		boolean workDays) {
 		Element el = new Element("event");
@@ -146,12 +149,12 @@ public class EventsManager {
 		}
 		el.addAttribute(new Attribute("repeat-type", String.valueOf(type)));
 		el.addAttribute(new Attribute("id", Util.generateId()));
-		el.addAttribute(new Attribute("hour", String.valueOf(hh)));
-		el.addAttribute(new Attribute("min", String.valueOf(mm)));
+		el.addAttribute(new Attribute("hour", String.valueOf(t.getHour())));
+		el.addAttribute(new Attribute("min", String.valueOf(t.getMinute())));
 		el.addAttribute(new Attribute("startDate", startDate.toString()));
 		if (endDate != null)
 			el.addAttribute(new Attribute("endDate", endDate.toString()));
-		el.addAttribute(new Attribute("period", String.valueOf(period)));
+		el.addAttribute(new Attribute("period", String.valueOf(t.getPeriod())));
 		// new attribute for wrkin days - ivanrise
 		el.addAttribute(new Attribute("workingDays",String.valueOf(workDays)));
 		el.appendChild(text);
@@ -174,7 +177,7 @@ public class EventsManager {
 		Vector reps = (Vector) getRepeatableEvents();
 		Vector v = new Vector();
 		for (int i = 0; i < reps.size(); i++) {
-			Event ev = (Event) reps.get(i);
+			IEvent ev = (IEvent) reps.get(i);
 			
 			// --- ivanrise
 			// ignore this event if it's a 'only working days' event and today is weekend.
@@ -224,7 +227,7 @@ public class EventsManager {
 		return getEventsForDate(CalendarDate.today());
 	}
 
-	public static Event getEvent(CalendarDate date, int hh, int mm) {
+	public static IEvent getEvent(CalendarDate date, int hh, int mm) {
 		Day d = getDay(date);
 		if (d == null)
 			return null;
@@ -246,7 +249,7 @@ public class EventsManager {
 			d.getElement().removeChild(getEvent(date, hh, mm).getContent());
 	}
 
-	public static void removeEvent(Event ev) {
+	public static void removeEvent(IEvent ev) {
 		ParentNode parent = ev.getContent().getParent();
 		parent.removeChild(ev.getContent());
 	}
